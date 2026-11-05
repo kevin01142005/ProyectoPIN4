@@ -11,6 +11,10 @@ from app.repository.repositorio_jpa import RepositorioJpa
 class VentaRepository(RepositorioJpa[Venta]):
     modelo = Venta
 
+    def find_all_order_by_creado_desc(self) -> list[Venta]:
+        consulta = select(Venta).order_by(Venta.creado.desc(), Venta.id.desc())
+        return list(self.db.scalars(consulta).all())
+
     def find_all_by_cliente_id_order_by_creado_desc(self, cliente_id: int) -> list[Venta]:
         consulta = select(Venta).where(Venta.cliente_id == cliente_id).order_by(Venta.creado.desc(), Venta.id.desc())
         return list(self.db.scalars(consulta).all())
