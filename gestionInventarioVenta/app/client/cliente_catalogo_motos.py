@@ -27,7 +27,7 @@ class ClienteCatalogoMotos:
 
     def obtener_version(self, version_id: int) -> VersionMoto:
     
-        url = f"{self.url_base}/versiones/{version_id}"
+        url = f"{self.url_base}/api/versiones/getVersionById/{version_id}"
         try:
             respuesta = httpx.get(url, timeout=self.timeout_segundos, headers={"Accept": "application/json"})
         except (httpx.HTTPError, httpx.InvalidURL) as error:
@@ -41,7 +41,7 @@ class ClienteCatalogoMotos:
             raise ServicioNoDisponibleException(MENSAJE_NO_DISPONIBLE)
 
         try:
-            datos = respuesta.json()
+            datos = respuesta.json()["data"][0]
             return VersionMoto(
                 id=int(datos["id"]),
                 marca=str(datos["nombreMarca"]),
@@ -50,7 +50,7 @@ class ClienteCatalogoMotos:
                 cilindraje=int(datos["cilindraje"]),
                 descripcion=str(datos["descripcion"]),
             )
-        except (ValueError, KeyError, TypeError) as error:
+        except (ValueError, KeyError, TypeError, IndexError) as error:
             logger.warning("Respuesta inesperada del catálogo de motos en %s: %s", url, error)
             raise ServicioNoDisponibleException("El servicio de catálogo de motos devolvió una respuesta inesperada") from error
 
