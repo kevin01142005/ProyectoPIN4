@@ -11,6 +11,11 @@ from app.service.servicio_venta import ServicioVenta
 router = APIRouter(prefix="/ventas", tags=["Ventas"])
 
 
+@router.get("", response_model=list[VentaResponse])
+def listar(servicio_venta: ServicioVenta = Depends(obtener_servicio_venta)):
+    return servicio_venta.obtener_todas()
+
+
 @router.post("", response_model=VentaResponse, status_code=201)
 def crear(
     request: VentaRequest,

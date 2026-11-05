@@ -121,6 +121,9 @@ class ServicioVenta:
         self.servicio_auditoria.registrar(responsable, AccionAuditoria.ACTUALIZACION, "Venta", id)
         return a_venta_response(guardada)
 
+    def obtener_todas(self) -> list[VentaResponse]:
+        return [a_venta_response(v) for v in self.venta_repository.find_all_order_by_creado_desc()]
+
     def obtener_por_id(self, id: int) -> VentaResponse:
         return a_venta_response(self._buscar_por_id_o_lanzar(id))
 
