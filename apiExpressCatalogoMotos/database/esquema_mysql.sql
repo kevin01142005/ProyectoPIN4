@@ -53,7 +53,9 @@ insert ignore into marcas(nombre, pais_origen) values
   ('Bajaj', 'India'),
   ('TVS', 'India'),
   ('AKT', 'Colombia'),
-  ('KTM', 'Austria');
+  ('KTM', 'Austria'),
+  ('Hero', 'India'),
+  ('Royal Enfield', 'India');
 
 insert ignore into modelos(marca_id, nombre, tipo) select id, 'FZ 150', 'Naked' from marcas where nombre = 'Yamaha';
 insert ignore into modelos(marca_id, nombre, tipo) select id, 'XTZ 125', 'Enduro' from marcas where nombre = 'Yamaha';
