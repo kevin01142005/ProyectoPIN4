@@ -30,6 +30,7 @@ MODULOS = [
     ("Auditoría", "/auditoria", "bi-shield-lock", "Registro de acciones de los usuarios"),
     ("Usuarios", "/usuarios", "bi-person-gear", "Gestión de usuarios del sistema"),
     ("Seguridad", "/seguridad", "bi-key", "Roles, módulos y permisos"),
+    ("Asistente", "/asistente", "bi-robot", "Asistente de inteligencia artificial del sistema"),
 ]
 
 LECTURA = (False, False, False)
@@ -41,9 +42,10 @@ PERMISOS = {
         "/productos": LECTURA_Y_ESCRITURA,
         "/categorias": LECTURA,
         "/proveedores": LECTURA,
-        "/clientes": LECTURA_Y_ESCRITURA,
+        "/clientes": TOTAL,
         "/inventario": (True, False, False),
         "/ventas": (True, False, False),
+        "/asistente": LECTURA,
     },
     RolUsuario.ADMINISTRADOR: {
         "/panel": LECTURA,
@@ -56,6 +58,7 @@ PERMISOS = {
         "/reportes": LECTURA,
         "/auditoria": LECTURA,
         "/usuarios": TOTAL,
+        "/asistente": LECTURA,
     },
     RolUsuario.SUPER_USUARIO: {
         "/panel": LECTURA,
@@ -69,6 +72,7 @@ PERMISOS = {
         "/auditoria": LECTURA,
         "/usuarios": TOTAL,
         "/seguridad": TOTAL,
+        "/asistente": LECTURA,
     },
 }
 
