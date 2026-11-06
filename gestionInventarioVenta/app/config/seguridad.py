@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from starlette.responses import Response
 
 from app.config.base_datos import obtener_sesion
+from app.config.configuracion import configuracion
 from app.config.openapi import esquema_bearer
 from app.exception.api_exception import AccesoDenegadoException, CredencialesInvalidasException
 from app.repository.modulo_x_rol_repository import ModuloXRolRepository
@@ -34,10 +35,17 @@ def obtener_codificador_contrasenas() -> CodificadorContrasenas:
     return CodificadorContrasenas()
 
 
+ORIGENES_PERMITIDOS_REGEX = (
+    r"^(http://(localhost|127\.0\.0\.1):\d+"
+    r"|https://luxmotos-inventario\.onrender\.com)$"
+)
+
+
 def configurar_cors(app: FastAPI) -> None:
     app.add_middleware(
         CORSMiddleware,
-        allow_origin_regex=r"^http://(localhost|127\.0\.0\.1):\d+$",
+        allow_origins=list(configuracion.cors_origenes),
+        allow_origin_regex=ORIGENES_PERMITIDOS_REGEX,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         allow_headers=["Authorization", "Content-Type"],
         allow_credentials=True,
