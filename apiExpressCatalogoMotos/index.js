@@ -1,5 +1,6 @@
 require('dotenv').config({ quiet: true });
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 const swaggerUi = require('swagger-ui-express');
 const swaggerDocument = require('./src/config/swaggerConfig');
@@ -11,6 +12,7 @@ const versionRoutes = require('./src/routes/versionRoutes');
 const app = express();
 const port = process.env.PORT || 4000;
 
+app.use(cors());
 app.use(bodyParser.json());
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, { customSiteTitle: 'Catálogo de motos - API' }));
