@@ -35,5 +35,9 @@ class Configuracion:
 
     puerto_servidor: int = _entero("SERVER_PORT", 8080)
 
+    cors_origenes: tuple[str, ...] = tuple(
+        o.strip().rstrip("/") for o in os.getenv("CORS_ORIGENES", "").split(",") if o.strip()
+    )
+
 
 configuracion = Configuracion()
