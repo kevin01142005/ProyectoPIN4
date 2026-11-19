@@ -27,10 +27,12 @@ MODULOS = [
     ("Inventario", "/inventario", "bi-arrow-left-right", "Entradas y salidas de inventario"),
     ("Ventas", "/ventas", "bi-cart-check", "Ventas y facturación"),
     ("Reportes", "/reportes", "bi-bar-chart", "Reportes de ventas e inventario"),
+    ("Notificaciones", "/notificaciones", "bi-envelope-paper", "Seguimiento de los correos que envía el sistema"),
     ("Auditoría", "/auditoria", "bi-shield-lock", "Registro de acciones de los usuarios"),
     ("Usuarios", "/usuarios", "bi-person-gear", "Gestión de usuarios del sistema"),
     ("Seguridad", "/seguridad", "bi-key", "Roles, módulos y permisos"),
     ("Asistente", "/asistente", "bi-robot", "Asistente de inteligencia artificial del sistema"),
+    ("Chat", "/chat", "bi-chat-dots", "Chat en tiempo real entre los usuarios conectados"),
 ]
 
 LECTURA = (False, False, False)
@@ -46,6 +48,7 @@ PERMISOS = {
         "/inventario": (True, False, False),
         "/ventas": (True, False, False),
         "/asistente": LECTURA,
+        "/chat": LECTURA,
     },
     RolUsuario.ADMINISTRADOR: {
         "/panel": LECTURA,
@@ -56,9 +59,11 @@ PERMISOS = {
         "/inventario": (True, False, False),
         "/ventas": (True, False, False),
         "/reportes": LECTURA,
+        "/notificaciones": LECTURA,
         "/auditoria": LECTURA,
         "/usuarios": TOTAL,
         "/asistente": LECTURA,
+        "/chat": LECTURA,
     },
     RolUsuario.SUPER_USUARIO: {
         "/panel": LECTURA,
@@ -69,10 +74,12 @@ PERMISOS = {
         "/inventario": (True, False, False),
         "/ventas": (True, False, False),
         "/reportes": LECTURA,
+        "/notificaciones": LECTURA,
         "/auditoria": LECTURA,
         "/usuarios": TOTAL,
         "/seguridad": TOTAL,
         "/asistente": LECTURA,
+        "/chat": LECTURA,
     },
 }
 

@@ -9,13 +9,17 @@ from app.config.inicializador_datos import ejecutar_inicializador
 from app.config.openapi import INFO_OPENAPI
 from app.config.seguridad import autorizar_solicitud, configurar_cors
 from app.controller import (
+    controlador_ambiente,
     controlador_auditoria,
     controlador_autenticacion,
     controlador_categoria,
+    controlador_chat,
     controlador_cliente,
+    controlador_exportacion_reporte,
     controlador_inventario,
     controlador_modulo,
     controlador_modulo_x_rol,
+    controlador_notificacion,
     controlador_panel,
     controlador_producto,
     controlador_proveedor,
@@ -47,13 +51,16 @@ app = FastAPI(
 registrar_manejadores(app)
 configurar_cors(app) 
 
+app.include_router(controlador_ambiente.router)
 app.include_router(controlador_autenticacion.router)
 app.include_router(controlador_auditoria.router)
 app.include_router(controlador_categoria.router)
 app.include_router(controlador_cliente.router)
+app.include_router(controlador_exportacion_reporte.router)
 app.include_router(controlador_inventario.router)
 app.include_router(controlador_modulo.router)
 app.include_router(controlador_modulo_x_rol.router)
+app.include_router(controlador_notificacion.router)
 app.include_router(controlador_panel.router)
 app.include_router(controlador_producto.router)
 app.include_router(controlador_proveedor.router)
@@ -61,6 +68,7 @@ app.include_router(controlador_reporte.router)
 app.include_router(controlador_rol.router)
 app.include_router(controlador_usuario.router)
 app.include_router(controlador_venta.router)
+controlador_chat.registrar_chat(app)
 
 
 if __name__ == "__main__":

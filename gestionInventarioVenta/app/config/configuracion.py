@@ -33,6 +33,33 @@ class Configuracion:
     catalogo_motos_url: str = os.getenv("CATALOGO_MOTOS_URL", "http://localhost:4000").strip().rstrip("/")
     catalogo_motos_timeout: float = float(os.getenv("CATALOGO_MOTOS_TIMEOUT_SEGUNDOS", "5"))
 
+    # Circuito de sensores del almacén (ESP32)
+    dispositivo_api_key: str = os.getenv("DISPOSITIVO_API_KEY", "").strip()
+    temperatura_maxima: float = float(os.getenv("AMBIENTE_TEMP_MAX", "30"))
+    temperatura_minima: float = float(os.getenv("AMBIENTE_TEMP_MIN", "15"))
+    humedad_maxima: float = float(os.getenv("AMBIENTE_HUM_MAX", "70"))
+    humedad_minima: float = float(os.getenv("AMBIENTE_HUM_MIN", "30"))
+
+    # ThingSpeak (gráfica pública de las lecturas del circuito)
+    thingspeak_write_key: str = os.getenv("THINGSPEAK_WRITE_KEY", "").strip()
+    thingspeak_channel_id: str = os.getenv("THINGSPEAK_CHANNEL_ID", "").strip()
+
+    # Correo saliente (notificaciones automáticas y envío de reportes). Por defecto usa SMTP de Gmail.
+    correo_activo: bool = os.getenv("CORREO_ACTIVO", "true").lower() == "true"
+    smtp_host: str = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
+    smtp_puerto: int = _entero("SMTP_PORT", 587)
+    smtp_usuario: str = os.getenv("SMTP_USER", "").strip()
+    smtp_contrasena: str = os.getenv("SMTP_PASSWORD", "").replace(" ", "")
+    smtp_timeout: float = float(os.getenv("SMTP_TIMEOUT_SEGUNDOS", "20"))
+    correo_remitente: str = os.getenv("CORREO_REMITENTE", "").strip()
+    nombre_remitente: str = os.getenv("CORREO_NOMBRE_REMITENTE", "LuxMotos").strip()
+    # Si se define, las alertas van solo a estos correos; si no, a los administradores registrados.
+    correos_alerta: tuple[str, ...] = tuple(
+        c.strip().lower() for c in os.getenv("CORREOS_ALERTA", "").split(",") if c.strip()
+    )
+    # Mínimo de minutos entre dos alertas de ambiente seguidas (el circuito envía lecturas muy seguido).
+    alerta_ambiente_minutos: int = _entero("ALERTA_AMBIENTE_MINUTOS", 30)
+
     puerto_servidor: int = _entero("SERVER_PORT", 8080)
 
     cors_origenes: tuple[str, ...] = tuple(

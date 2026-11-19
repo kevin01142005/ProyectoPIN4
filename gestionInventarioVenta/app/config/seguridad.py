@@ -47,7 +47,7 @@ def configurar_cors(app: FastAPI) -> None:
         allow_origins=list(configuracion.cors_origenes),
         allow_origin_regex=ORIGENES_PERMITIDOS_REGEX,
         allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-        allow_headers=["Authorization", "Content-Type"],
+        allow_headers=["Authorization", "Content-Type", "X-API-Key"],
         allow_credentials=True,
     )
 
@@ -62,6 +62,7 @@ PREFIJOS_MODULO: list[tuple[str, str]] = [
     ("/inventario", "/inventario"),
     ("/ventas", "/ventas"),
     ("/reportes", "/reportes"),
+    ("/notificaciones", "/notificaciones"),
     ("/auditoria", "/auditoria"),
     ("/usuarios", "/usuarios"),
     ("/roles", "/seguridad"),
@@ -121,6 +122,10 @@ def autorizar_solicitud(
     if metodo == "POST" and ruta == "/autenticacion/login":
         return 
 
+    # El circuito de sensores se identifica con su propia clave (X-API-Key), validada en el controlador.
+    if metodo == "POST" and ruta == "/ambiente/lecturas":
+        return
+
     usuario = _autenticar_con_jwt(request, db)
     if usuario is None:
         raise AccesoDenegadoException()
@@ -128,6 +133,10 @@ def autorizar_solicitud(
     ruta_modulo = _modulo_de_la_ruta(ruta)
     if ruta_modulo is None:
         return  
+
+    # Enviar un reporte por correo es una consulta (no crea datos de negocio): basta el permiso de lectura.
+    if metodo == "POST" and ruta.startswith("/reportes/enviar/"):
+        metodo = "GET"
 
     permiso = ModuloXRolRepository(db).find_permiso_activo(usuario.rol_id, ruta_modulo)
     if permiso is None or not _accion_permitida(metodo, permiso):

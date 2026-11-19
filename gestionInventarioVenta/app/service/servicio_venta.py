@@ -11,6 +11,7 @@ from app.model.accion_auditoria import AccionAuditoria
 from app.model.detalle_venta import DetalleVenta
 from app.model.estado_venta import EstadoVenta
 from app.model.tipo_movimiento_inventario import TipoMovimientoInventario
+from app.model.tipo_notificacion import TipoNotificacion
 from app.model.venta import Venta
 from app.repository.usuario_repository import UsuarioRepository
 from app.repository.venta_repository import VentaRepository
@@ -19,10 +20,16 @@ from app.service.servicio_auditoria import ServicioAuditoria
 from app.service.servicio_cliente import ServicioCliente
 from app.service.servicio_factura import ServicioFactura
 from app.service.servicio_inventario import ServicioInventario
+from app.service.servicio_notificacion import notificar_en_segundo_plano
 from app.service.servicio_producto import ServicioProducto
+from app.util.plantillas_correo import construir_html
 
 TASA_IVA = Decimal("0.19")
 DOS_DECIMALES = Decimal("0.01")
+
+
+def _pesos(valor: Decimal) -> str:
+    return "$ " + f"{valor:,.0f}".replace(",", ".")
 
 
 class ServicioVenta:
@@ -108,7 +115,48 @@ class ServicioVenta:
         self.servicio_factura.generar_para_venta(guardada)
 
         self.servicio_auditoria.registrar(responsable, AccionAuditoria.ACTUALIZACION, "Venta", id)
+        self._notificar_venta_completada(guardada, responsable)
         return a_venta_response(guardada)
+
+    @staticmethod
+    def _notificar_venta_completada(venta: Venta, responsable: str) -> None:
+        """Correos automáticos: confirmación de la venta y, si aplica, alerta de stock bajo a los administradores."""
+        lineas = [
+            [d.producto.nombre, d.cantidad, _pesos(d.precio_unitario), _pesos(d.precio_unitario * d.cantidad)]
+            for d in venta.detalles
+        ]
+        notificar_en_segundo_plano(
+            TipoNotificacion.VENTA_COMPLETADA,
+            f"Venta #{venta.id} completada · LuxMotos",
+            construir_html(
+                f"Venta #{venta.id} completada",
+                [
+                    f"Cliente: {venta.cliente.nombre}",
+                    f"Subtotal: {_pesos(venta.subtotal)} · IVA: {_pesos(venta.iva)} · Total: {_pesos(venta.total)}",
+                ],
+                tabla=(["Producto", "Cantidad", "Precio unitario", "Subtotal"], lineas),
+            ),
+            para={responsable, venta.vendedor.correo},
+            referencia=f"Venta #{venta.id}",
+        )
+
+        bajos = {
+            d.producto.id: d.producto for d in venta.detalles if d.producto.stock_actual <= d.producto.stock_minimo
+        }
+        if bajos:
+            notificar_en_segundo_plano(
+                TipoNotificacion.STOCK_BAJO,
+                "Alerta de stock bajo · LuxMotos",
+                construir_html(
+                    "Productos con stock bajo",
+                    [f"Después de la venta #{venta.id}, estos productos quedaron en o por debajo de su stock mínimo."],
+                    tabla=(
+                        ["Código", "Producto", "Stock actual", "Stock mínimo"],
+                        [[p.codigo, p.nombre, p.stock_actual, p.stock_minimo] for p in bajos.values()],
+                    ),
+                ),
+                referencia=f"Venta #{venta.id}",
+            )
 
     def anular(self, id: int, responsable: str) -> VentaResponse:
         venta = self._buscar_por_id_o_lanzar(id)

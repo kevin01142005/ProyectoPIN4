@@ -12,6 +12,7 @@ from app.exception.api_exception import (
 )
 from app.exception.operacion_no_permitida_exception import OperacionNoPermitidaException
 from app.model.accion_auditoria import AccionAuditoria
+from app.model.tipo_notificacion import TipoNotificacion
 from app.model.usuario import Usuario
 from app.repository.modulo_x_rol_repository import ModuloXRolRepository
 from app.repository.rol_repository import RolRepository
@@ -19,6 +20,8 @@ from app.repository.usuario_repository import UsuarioRepository
 from app.service.politica_roles import puede_gestionar
 from app.service.servicio_auditoria import ServicioAuditoria
 from app.service.servicio_jwt import ServicioJwt
+from app.service.servicio_notificacion import notificar_en_segundo_plano
+from app.util.plantillas_correo import construir_html
 
 
 class ServicioAutenticacion:
@@ -63,6 +66,22 @@ class ServicioAutenticacion:
 
         guardado = self.usuario_repository.save(usuario)
         self.servicio_auditoria.registrar(correo_creador, AccionAuditoria.CREACION, "Usuario", guardado.id)
+
+        # Notificación automática: bienvenida al nuevo usuario (nunca se envía la contraseña).
+        notificar_en_segundo_plano(
+            TipoNotificacion.REGISTRO_USUARIO,
+            "Bienvenido a LuxMotos · tu cuenta fue creada",
+            construir_html(
+                f"¡Bienvenido, {guardado.nombre_completo}!",
+                [
+                    f"{creador.nombre_completo} creó tu cuenta en el sistema de gestión de inventario de LuxMotos.",
+                    f"Tu usuario es {guardado.correo} y tu rol es {rol.nombre}.",
+                    "Por seguridad, la contraseña no se envía por correo: pídesela a quien creó tu cuenta.",
+                ],
+            ),
+            para=[guardado.correo],
+            referencia=f"Usuario {guardado.id}",
+        )
         return self.a_response(guardado)
 
     def login(self, request: LoginRequest) -> TokenResponse:

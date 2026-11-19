@@ -8,6 +8,7 @@ from app.repository.categoria_repository import CategoriaRepository
 from app.repository.cliente_repository import ClienteRepository
 from app.repository.detalle_venta_repository import DetalleVentaRepository
 from app.repository.factura_repository import FacturaRepository
+from app.repository.lectura_ambiente_repository import LecturaAmbienteRepository
 from app.repository.modulo_repository import ModuloRepository
 from app.repository.modulo_x_rol_repository import ModuloXRolRepository
 from app.repository.movimiento_inventario_repository import MovimientoInventarioRepository
@@ -25,6 +26,7 @@ from app.service.servicio_compatibilidad import ServicioCompatibilidad
 from app.service.servicio_cliente import ServicioCliente
 from app.service.servicio_factura import ServicioFactura
 from app.service.servicio_inventario import ServicioInventario
+from app.service.servicio_lectura_ambiente import ServicioLecturaAmbiente
 from app.service.servicio_jwt import ServicioJwt, obtener_servicio_jwt
 from app.service.servicio_modulo import ServicioModulo
 from app.service.servicio_modulo_x_rol import ServicioModuloXRol
@@ -172,3 +174,7 @@ def obtener_servicio_compatibilidad(
     return ServicioCompatibilidad(
         ProductoCompatibilidadRepository(db), servicio_producto, cliente_catalogo, servicio_auditoria
     )
+
+
+def obtener_servicio_lectura_ambiente(db: Session = Depends(obtener_sesion)) -> ServicioLecturaAmbiente:
+    return ServicioLecturaAmbiente(LecturaAmbienteRepository(db))
