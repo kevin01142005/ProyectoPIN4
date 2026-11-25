@@ -44,7 +44,10 @@ class Configuracion:
     thingspeak_write_key: str = os.getenv("THINGSPEAK_WRITE_KEY", "").strip()
     thingspeak_channel_id: str = os.getenv("THINGSPEAK_CHANNEL_ID", "").strip()
 
-    # Correo saliente (notificaciones automáticas y envío de reportes). Por defecto usa SMTP de Gmail.
+    # Correo saliente (notificaciones automáticas y envío de reportes). Si hay BREVO_API_KEY se envía por la API web de
+    # Brevo (funciona en Render gratis, que bloquea SMTP); si no, por SMTP (por defecto Gmail).
+    brevo_api_key: str = os.getenv("BREVO_API_KEY", "").strip()
+    brevo_url: str = os.getenv("BREVO_URL", "https://api.brevo.com/v3").strip().rstrip("/")
     correo_activo: bool = os.getenv("CORREO_ACTIVO", "true").lower() == "true"
     smtp_host: str = os.getenv("SMTP_HOST", "smtp.gmail.com").strip()
     smtp_puerto: int = _entero("SMTP_PORT", 587)
@@ -59,6 +62,19 @@ class Configuracion:
     )
     # Mínimo de minutos entre dos alertas de ambiente seguidas (el circuito envía lecturas muy seguido).
     alerta_ambiente_minutos: int = _entero("ALERTA_AMBIENTE_MINUTOS", 30)
+
+    # Asistente de IA: el backend solo guarda la clave de Groq y le reenvía el resumen que arma el Angular.
+    groq_api_key: str = os.getenv("GROQ_API_KEY", "").strip()
+    groq_modelo: str = os.getenv("GROQ_MODELO", "openai/gpt-oss-120b").strip()
+    groq_url: str = os.getenv("GROQ_URL", "https://api.groq.com/openai/v1").strip().rstrip("/")
+    asistente_timeout: float = float(os.getenv("ASISTENTE_TIMEOUT_SEGUNDOS", "60"))
+
+    # Bot de Telegram (webhook): Telegram avisa a esta API cuando alguien escribe al bot.
+    telegram_bot_token: str = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    telegram_webhook_secreto: str = os.getenv("TELEGRAM_WEBHOOK_SECRETO", "").strip()
+    telegram_api_url: str = os.getenv("TELEGRAM_API_URL", "https://api.telegram.org").strip().rstrip("/")
+    # Dirección pública de esta API; Render la define sola en RENDER_EXTERNAL_URL. Sin ella no se registra el webhook.
+    url_publica: str = (os.getenv("PUBLIC_URL") or os.getenv("RENDER_EXTERNAL_URL") or "").strip().rstrip("/")
 
     puerto_servidor: int = _entero("SERVER_PORT", 8080)
 

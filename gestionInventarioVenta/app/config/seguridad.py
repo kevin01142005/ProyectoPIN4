@@ -126,6 +126,10 @@ def autorizar_solicitud(
     if metodo == "POST" and ruta == "/ambiente/lecturas":
         return
 
+    # Telegram no envía un JWT: el controlador valida el secreto del webhook (X-Telegram-Bot-Api-Secret-Token).
+    if metodo == "POST" and ruta == "/telegram/webhook":
+        return
+
     usuario = _autenticar_con_jwt(request, db)
     if usuario is None:
         raise AccesoDenegadoException()

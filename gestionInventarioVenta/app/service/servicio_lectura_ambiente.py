@@ -8,6 +8,7 @@ from app.model.lectura_ambiente import LecturaAmbiente
 from app.model.tipo_notificacion import TipoNotificacion
 from app.repository.lectura_ambiente_repository import LecturaAmbienteRepository
 from app.service.servicio_notificacion import notificar_en_segundo_plano
+from app.service.servicio_thingspeak import publicar_lectura
 from app.util.anio_mes import zona
 from app.util.plantillas_correo import construir_html
 
@@ -30,6 +31,9 @@ class ServicioLecturaAmbiente:
             lectura.medido = datetime.now(timezone.utc)
 
         respuesta = self._a_response(self.lectura_repository.save(lectura))
+
+        # Gráfica en tiempo real: reenvía la temperatura a ThingSpeak (en segundo plano, sin afectar al circuito).
+        publicar_lectura(respuesta.temperatura, respuesta.presion)
 
         # Notificación automática: la lectura salió de los límites de la bodega (con pausa entre alertas).
         if respuesta.alerta:

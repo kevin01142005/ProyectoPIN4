@@ -10,6 +10,7 @@ from app.config.openapi import INFO_OPENAPI
 from app.config.seguridad import autorizar_solicitud, configurar_cors
 from app.controller import (
     controlador_ambiente,
+    controlador_asistente,  # <-- NUEVO
     controlador_auditoria,
     controlador_autenticacion,
     controlador_categoria,
@@ -45,13 +46,14 @@ app = FastAPI(
     openapi_url="/v3/api-docs",
     redoc_url=None,
     lifespan=ciclo_de_vida,
-    dependencies=[Depends(autorizar_solicitud)],  
+    dependencies=[Depends(autorizar_solicitud)],
 )
 
 registrar_manejadores(app)
-configurar_cors(app) 
+configurar_cors(app)
 
 app.include_router(controlador_ambiente.router)
+app.include_router(controlador_asistente.router)  # <-- NUEVO
 app.include_router(controlador_autenticacion.router)
 app.include_router(controlador_auditoria.router)
 app.include_router(controlador_categoria.router)
