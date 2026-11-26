@@ -112,33 +112,41 @@ class ServicioVenta:
 
         venta.estado_venta = EstadoVenta.COMPLETADA
         guardada = self.venta_repository.save(venta)
-        self.servicio_factura.generar_para_venta(guardada)
+        factura = self.servicio_factura.generar_para_venta(guardada)
 
         self.servicio_auditoria.registrar(responsable, AccionAuditoria.ACTUALIZACION, "Venta", id)
-        self._notificar_venta_completada(guardada, responsable)
+        self._notificar_venta_completada(guardada, factura.numero_factura)
         return a_venta_response(guardada)
 
     @staticmethod
-    def _notificar_venta_completada(venta: Venta, responsable: str) -> None:
-        """Correos automáticos: confirmación de la venta y, si aplica, alerta de stock bajo a los administradores."""
-        lineas = [
-            [d.producto.nombre, d.cantidad, _pesos(d.precio_unitario), _pesos(d.precio_unitario * d.cantidad)]
-            for d in venta.detalles
-        ]
-        notificar_en_segundo_plano(
-            TipoNotificacion.VENTA_COMPLETADA,
-            f"Venta #{venta.id} completada · LuxMotos",
-            construir_html(
-                f"Venta #{venta.id} completada",
-                [
-                    f"Cliente: {venta.cliente.nombre}",
-                    f"Subtotal: {_pesos(venta.subtotal)} · IVA: {_pesos(venta.iva)} · Total: {_pesos(venta.total)}",
-                ],
-                tabla=(["Producto", "Cantidad", "Precio unitario", "Subtotal"], lineas),
-            ),
-            para={responsable, venta.vendedor.correo},
-            referencia=f"Venta #{venta.id}",
-        )
+    def _notificar_venta_completada(venta: Venta, numero_factura: str) -> None:
+        """Correos automáticos al completar una venta.
+
+        - El comprador recibe su confirmación con el detalle (la factura), si su ficha tiene correo.
+        - Los administradores reciben solo la alerta, y únicamente si algún producto quedó con stock bajo o agotado.
+        """
+        correo_cliente = (venta.cliente.correo or "").strip()
+        if "@" in correo_cliente:
+            lineas = [
+                [d.producto.nombre, d.cantidad, _pesos(d.precio_unitario), _pesos(d.precio_unitario * d.cantidad)]
+                for d in venta.detalles
+            ]
+            notificar_en_segundo_plano(
+                TipoNotificacion.VENTA_COMPLETADA,
+                f"Tu factura {numero_factura} · LuxMotos",
+                construir_html(
+                    "¡Gracias por tu compra en LuxMotos!",
+                    [
+                        f"Hola {venta.cliente.nombre}, tu compra #{venta.id} fue confirmada.",
+                        f"Factura: {numero_factura}",
+                        f"Subtotal: {_pesos(venta.subtotal)} · IVA: {_pesos(venta.iva)} · Total: {_pesos(venta.total)}",
+                    ],
+                    tabla=(["Producto", "Cantidad", "Precio unitario", "Subtotal"], lineas),
+                    pie="Gracias por preferirnos. Este es un mensaje automático de LuxMotos; no respondas a este correo.",
+                ),
+                para=[correo_cliente],
+                referencia=f"Venta #{venta.id}",
+            )
 
         bajos = {
             d.producto.id: d.producto for d in venta.detalles if d.producto.stock_actual <= d.producto.stock_minimo
@@ -148,11 +156,14 @@ class ServicioVenta:
                 TipoNotificacion.STOCK_BAJO,
                 "Alerta de stock bajo · LuxMotos",
                 construir_html(
-                    "Productos con stock bajo",
+                    "Productos con stock bajo o agotados",
                     [f"Después de la venta #{venta.id}, estos productos quedaron en o por debajo de su stock mínimo."],
                     tabla=(
-                        ["Código", "Producto", "Stock actual", "Stock mínimo"],
-                        [[p.codigo, p.nombre, p.stock_actual, p.stock_minimo] for p in bajos.values()],
+                        ["Código", "Producto", "Estado", "Stock actual", "Stock mínimo"],
+                        [
+                            [p.codigo, p.nombre, "Agotado" if p.stock_actual <= 0 else "Stock bajo", p.stock_actual, p.stock_minimo]
+                            for p in bajos.values()
+                        ],
                     ),
                 ),
                 referencia=f"Venta #{venta.id}",
