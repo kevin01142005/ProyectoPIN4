@@ -10,7 +10,7 @@ from app.config.openapi import INFO_OPENAPI
 from app.config.seguridad import autorizar_solicitud, configurar_cors
 from app.controller import (
     controlador_ambiente,
-    controlador_asistente,  # <-- NUEVO
+    controlador_asistente,
     controlador_auditoria,
     controlador_autenticacion,
     controlador_categoria,
@@ -26,10 +26,12 @@ from app.controller import (
     controlador_proveedor,
     controlador_reporte,
     controlador_rol,
+    controlador_telegram,
     controlador_usuario,
     controlador_venta,
 )
 from app.exception.global_exception_handler import registrar_manejadores
+from app.service.servicio_telegram import obtener_servicio_telegram
 
 
 @asynccontextmanager
@@ -37,6 +39,7 @@ async def ciclo_de_vida(app: FastAPI):
     inicializar_esquema()
     with SesionLocal() as sesion:
         ejecutar_inicializador(sesion)
+    obtener_servicio_telegram().registrar_webhook_en_segundo_plano()  # solo si hay token y dirección pública (Render)
     yield
 
 
@@ -53,7 +56,7 @@ registrar_manejadores(app)
 configurar_cors(app)
 
 app.include_router(controlador_ambiente.router)
-app.include_router(controlador_asistente.router)  # <-- NUEVO
+app.include_router(controlador_asistente.router)
 app.include_router(controlador_autenticacion.router)
 app.include_router(controlador_auditoria.router)
 app.include_router(controlador_categoria.router)
@@ -68,6 +71,7 @@ app.include_router(controlador_producto.router)
 app.include_router(controlador_proveedor.router)
 app.include_router(controlador_reporte.router)
 app.include_router(controlador_rol.router)
+app.include_router(controlador_telegram.router)
 app.include_router(controlador_usuario.router)
 app.include_router(controlador_venta.router)
 controlador_chat.registrar_chat(app)
