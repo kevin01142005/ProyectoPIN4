@@ -26,6 +26,7 @@ class ServicioPanel:
             total_ventas_del_mes=self.venta_repository.sumar_total_por_estado_y_fecha(
                 EstadoVenta.COMPLETADA, desde, hasta
             ),
+            total_vendido=self.venta_repository.sumar_total_por_estado(EstadoVenta.COMPLETADA),
             cantidad_productos_activos=self.producto_repository.count_by_estado_true(),
             cantidad_productos_agotados=self.producto_repository.count_by_estado_true_and_stock_actual(0),
             cantidad_clientes_registrados=self.cliente_repository.count_by_estado_true(),

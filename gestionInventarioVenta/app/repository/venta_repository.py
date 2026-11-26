@@ -37,3 +37,11 @@ class VentaRepository(RepositorioJpa[Venta]):
         )
         resultado = self.db.scalar(consulta)
         return Decimal(str(resultado if resultado is not None else 0))
+
+    def sumar_total_por_estado(self, estado_venta: EstadoVenta) -> Decimal:
+        """Suma el total de todas las ventas de un estado, sin importar la fecha."""
+        consulta = select(func.coalesce(func.sum(Venta.total), 0).cast(Numeric(38, 2))).where(
+            Venta.estado_venta == estado_venta
+        )
+        resultado = self.db.scalar(consulta)
+        return Decimal(str(resultado if resultado is not None else 0))
